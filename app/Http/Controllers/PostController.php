@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePostRequest;
-use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
-use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
 
-class PostController extends Controller
+class PostController extends Controller implements HasMiddleware
 {
-    public function __construct()
+    public static function middleware()
     {
         return [
-            new Middleware('auth:sanctum', except: ['index', 'show']),
+            new Middleware('auth:sanctum', except: ['index', 'show'])
         ];
     }
 
@@ -22,33 +22,24 @@ class PostController extends Controller
      */
     public function index()
     {
-        return Post::all();
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return Post::with('user')->latest()->get();
+        // return Post::all();
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePostRequest $request)
+    public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
+        $fields = $request->validate([
+            'title' => 'required|max:255',
+            'body' => 'required'
         ]);
 
-        $post = $request->user()->posts()->create([
-            'title' => $request->title,
-            'content' => $request->content,
-        ]);
+        $post = $request->user()->posts()->create($fields);
 
-        return response()->json($post, 201);
+        return ['post' => $post, 'user' => $post->user];
+        // return $post;
     }
 
     /**
@@ -56,32 +47,26 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        return $post;
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Post $post)
-    {
-        echo "Edit form for post with ID: " . $post->id;
+        return ['post' => $post, 'user' => $post->user];
+        // return $post;
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePostRequest $request, Post $post)
+    public function update(Request $request, Post $post)
     {
         Gate::authorize('modify', $post);
 
-        $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'content' => 'sometimes|required|string',
+        $fields = $request->validate([
+            'title' => 'required|max:255',
+            'body' => 'required'
         ]);
 
-        $post->update($request->only(['title', 'content']));
+        $post->update($fields);
 
-        return response()->json($post, 200);
+        return ['post' => $post, 'user' => $post->user];
+        // return $post;
     }
 
     /**
@@ -90,9 +75,9 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         Gate::authorize('modify', $post);
-        
+
         $post->delete();
 
-        return response()->json(null, 204);
+        return ['message' => 'The post was deleted'];
     }
 }
