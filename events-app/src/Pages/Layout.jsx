@@ -31,8 +31,8 @@ export default function Layout() {
     <>
       <header>
         <nav>
-          <Link to="/" className="nav-link">
-            Home
+          <Link to="/" className="nav-link font-bold text-lg">
+            Dubai Events
           </Link>
 
           {user ? (
@@ -47,10 +47,16 @@ export default function Layout() {
             </div>
           ) : (
             <div className="space-x-4">
-              <Link to="/register" className="nav-link">
+              <Link
+                to="/register"
+                className="nav-link bg-violet-700 border rounded-md text-white hover:bg-violet-500 hover:text-gray-100 dark:text-gray-200 dark:bg-violet-700"
+              >
                 Register
               </Link>
-              <Link to="/login" className="nav-link">
+              <Link
+                to="/login"
+                className="nav-link bg-gray-100 border border-gray-300 rounded-md text-black  hover:bg-gray-100 dark:text-gray-500 dark:bg-gray-700"
+              >
                 Login
               </Link>
             </div>
